@@ -5,7 +5,8 @@
 // with models namespaced as "provider/model". The Client implements ai.Client,
 // so Generate and Stream work the same as with any other goloop AI provider.
 // On top of that it exposes the native chat completions endpoint with its full
-// options and model listing. The wire format is chat-completions compatible.
+// options, model listing and single-model lookup. The wire format is
+// chat-completions compatible.
 //
 //	c := openrouter.New(os.Getenv("OPENROUTER_API_KEY"))
 //	resp, err := c.Generate(ctx, &ai.Request{

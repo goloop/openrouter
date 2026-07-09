@@ -28,6 +28,16 @@ func ExampleClient_Generate() {
 	// Output: openai/gpt-4o 1
 }
 
+// ExampleClient_GetModel notes single-model lookup. OpenRouter has no per-model
+// endpoint, so GetModel finds the model in the full list and reports a 404
+// ai.APIError when the ID is not routed.
+func ExampleClient_GetModel() {
+	c := openrouter.New("sk-or-...")
+	_ = c // m, _ := c.GetModel(ctx, openrouter.ModelClaudeSonnet)
+	fmt.Println(openrouter.ModelClaudeSonnet)
+	// Output: anthropic/claude-sonnet-4
+}
+
 // ExampleTool shows a tool definition passed with a request.
 func ExampleTool() {
 	tool := ai.Tool{
