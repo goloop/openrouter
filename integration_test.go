@@ -7,6 +7,7 @@
 package openrouter_test
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"os"
@@ -15,6 +16,8 @@ import (
 	"github.com/goloop/ai"
 	"github.com/goloop/openrouter"
 )
+
+var integrationModel = cmp.Or(os.Getenv("OPENROUTER_MODEL"), openrouter.ModelGPT4o)
 
 func integrationClient(t *testing.T) *openrouter.Client {
 	t.Helper()
@@ -28,7 +31,7 @@ func integrationClient(t *testing.T) *openrouter.Client {
 func TestIntegrationGenerate(t *testing.T) {
 	c := integrationClient(t)
 	resp, err := c.Generate(context.Background(), &ai.Request{
-		Model:     openrouter.ModelGPT4o,
+		Model:     integrationModel,
 		MaxTokens: 16,
 		Messages:  []ai.Message{ai.UserText("Reply with exactly one word: pong")},
 	})
@@ -46,7 +49,7 @@ func TestIntegrationStream(t *testing.T) {
 	var text string
 	var done bool
 	for chunk, err := range c.Stream(context.Background(), &ai.Request{
-		Model:     openrouter.ModelGPT4o,
+		Model:     integrationModel,
 		MaxTokens: 32,
 		Messages:  []ai.Message{ai.UserText("Count from 1 to 5.")},
 	}) {
@@ -67,7 +70,7 @@ func TestIntegrationStream(t *testing.T) {
 func TestIntegrationTools(t *testing.T) {
 	c := integrationClient(t)
 	resp, err := c.Generate(context.Background(), &ai.Request{
-		Model:     openrouter.ModelGPT4o,
+		Model:     integrationModel,
 		MaxTokens: 128,
 		Messages:  []ai.Message{ai.UserText("What is the weather in Kyiv? Use the tool.")},
 		Tools: []ai.Tool{{
