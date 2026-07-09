@@ -14,7 +14,7 @@ Initial release, built on the `github.com/goloop/ai` interface.
   chat completions, with tool use, multimodal image input and system prompts.
 - Native `ChatCompletion` and `ChatCompletionStream` exposing the full chat
   option set.
-- Model listing (`Models`).
+- Model listing (`Models`) and single-model lookup (`GetModel`).
 - Functional options: `WithBaseURL`, `WithHTTPClient`, `WithTimeout`,
   `WithMaxRetries`, `WithHeader`, plus `WithReferer` and `WithTitle` for
   app attribution.

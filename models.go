@@ -1,6 +1,11 @@
 package openrouter
 
-import "context"
+import (
+	"context"
+	"net/http"
+
+	"github.com/goloop/ai"
+)
 
 // Model describes a model listed by OpenRouter.
 type Model struct {
@@ -23,4 +28,23 @@ func (c *Client) Models(ctx context.Context) ([]Model, error) {
 		return nil, err
 	}
 	return out.Data, nil
+}
+
+// GetModel returns the model with the given ID. OpenRouter has no per-model
+// endpoint, so it looks the model up in the full list and reports a 404
+// [ai.APIError] when the ID is not routed.
+func (c *Client) GetModel(ctx context.Context, id string) (*Model, error) {
+	models, err := c.Models(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for i := range models {
+		if models[i].ID == id {
+			return &models[i], nil
+		}
+	}
+	return nil, &ai.APIError{
+		Status:  http.StatusNotFound,
+		Message: "model not found: " + id,
+	}
 }

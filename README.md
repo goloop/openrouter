@@ -71,7 +71,7 @@ for chunk, err := range c.Stream(ctx, req) {
 
 Any `provider/model` string works; a few are provided as constants
 (`ModelGPT4o`, `ModelClaudeSonnet`, `ModelGeminiFlash`, ...). List everything
-available with `c.Models(ctx)`.
+available with `c.Models(ctx)`, or fetch one with `c.GetModel(ctx, id)`.
 
 ## Documentation
 
