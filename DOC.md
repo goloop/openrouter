@@ -12,6 +12,7 @@ Ukrainian version: **[DOC.UK.md](DOC.UK.md)**.
 - [Creating a client](#creating-a-client)
 - [Generate and Stream](#generate-and-stream)
 - [Structured output](#structured-output)
+- [Hosted web search](#hosted-web-search)
 - [Native chat completions](#native-chat-completions)
 - [App attribution](#app-attribution)
 - [Tools, images and system prompts](#tools-images-and-system-prompts)
@@ -134,6 +135,22 @@ models, err := c.Models(ctx)
 models[0].ID            // "openai/gpt-4o"
 models[0].ContextLength
 ```
+
+## Hosted web search
+
+`ai.Request.Hosted` is answered with `ai.ErrNoHosted` before the request
+leaves.
+
+This provider routes to models rather than serving one, so what a request can do
+depends on the route behind it, and a hosted search is a routing feature rather
+than a tool the model is offered. There is no answer this package can give for
+the provider as a whole, and answering per route would be a capability table
+that is wrong the week a route changes.
+
+The refusal is the documented behavior, not a gap left in silence: an answer
+produced without the search that was asked for looks exactly like one produced
+with it, so failing loudly is the only way you can tell them apart. If you would
+rather have the answer anyway, ask again without `Hosted`.
 
 ## Options and errors
 

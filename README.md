@@ -9,7 +9,6 @@ AI provider. OpenRouter is a routing gateway: one API and key reach many model
 providers, with models namespaced as `provider/model`.
 
 ## Features
-
 - Chat completions: `Generate` for a single response, `Stream` for
   token-by-token output through `iter.Seq2`.
 - Tool use (function calling), multimodal image input and system prompts.
@@ -20,6 +19,8 @@ providers, with models namespaced as `provider/model`.
 - Depends only on `github.com/goloop/ai` and the standard library.
 - Structured output: `ai.Format` maps onto the provider's `response_format`
   (JSON mode or a JSON Schema); read the reply with `resp.JSON(&v)`.
+- Hosted capabilities: `ai.Request.Hosted` is refused with `ai.ErrNoHosted`,
+  because a hosted search here depends on the route rather than the provider.
 
 ## Installation
 
