@@ -108,3 +108,16 @@ func TestProviderErrorStopsStream(t *testing.T) {
 		t.Fatal(done, err)
 	}
 }
+
+func TestGenerateHTTP200ProviderError(t *testing.T) {
+	c, done := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, `{"error":{"message":"provider unavailable","code":503}}`)
+	})
+	defer done()
+	got, err := c.Generate(context.Background(), &ai.Request{
+		Model: "m", Messages: []ai.Message{ai.UserText("hi")},
+	})
+	if err == nil || got != nil {
+		t.Fatalf("Generate = %+v, %v", got, err)
+	}
+}

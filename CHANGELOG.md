@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Report upstream errors before finishing a stream.
 
+Cover provider errors in successful HTTP responses.
+
 ## [1.1.5] - 2026-10-18
 
 Reject nil native chat and stream requests.

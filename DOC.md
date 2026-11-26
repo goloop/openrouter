@@ -188,3 +188,7 @@ Requests missing a model or messages fail before the network with
 ## Release v1.1.5
 
 Reject nil native chat and stream requests.
+
+## Request behavior
+
+An upstream error in an HTTP 200 response is reported as an error. A stream that already delivered text can still end with an error.

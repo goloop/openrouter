@@ -185,3 +185,7 @@ if errors.As(err, &apiErr) && apiErr.Status == http.StatusTooManyRequests {
 ## Реліз v1.1.5
 
 Native chat та stream повертають ai.ErrNoRequest для nil-запиту.
+
+## Поведінка запиту
+
+Помилка провайдера у відповіді HTTP 200 передається викликачу. Потік може завершитися помилкою після частини тексту.
