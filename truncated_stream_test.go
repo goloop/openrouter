@@ -100,3 +100,11 @@ func TestStreamInvalidToolArgumentsAreAnError(t *testing.T) {
 		t.Error("invalid tool arguments were not reported")
 	}
 }
+
+func TestProviderErrorStopsStream(t *testing.T) {
+	_, done, err := streamOf(t, []string{`data: {"choices":[{"delta":{"content":"partial"}}]}`, "", `data: {"error":{"code":502,"message":"failed"},"choices":[{"finish_reason":"error"}]}`, "", "data: [DONE]", ""})
+	var apiErr *ai.APIError
+	if done || !errors.As(err, &apiErr) || apiErr.Status != 502 {
+		t.Fatal(done, err)
+	}
+}

@@ -13,8 +13,9 @@ import (
 
 // ChatStreamChunk is one streamed chat completions event.
 type ChatStreamChunk struct {
-	ID      string `json:"id"`
-	Model   string `json:"model"`
+	Error   json.RawMessage `json:"error,omitempty"`
+	ID      string          `json:"id"`
+	Model   string          `json:"model"`
 	Choices []struct {
 		Index int `json:"index"`
 		Delta struct {
@@ -48,13 +49,16 @@ func (c *Client) openStream(ctx context.Context, req *ChatRequest) (*http.Respon
 	}
 	h := c.headers()
 	h.Set("accept", "text/event-stream")
-	resp, err := c.opts.Do(ctx, http.MethodPost, c.opts.BaseURL+"/chat/completions", body, h)
+	resp, err := c.opts.DoStream(ctx, http.MethodPost, c.opts.BaseURL+"/chat/completions", body, h)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		data, _ := io.ReadAll(resp.Body)
+		data, readErr := ai.ReadResponse(resp.Body)
 		resp.Body.Close()
+		if readErr != nil {
+			return nil, readErr
+		}
 		return nil, parseError(resp.StatusCode, data)
 	}
 	return resp, nil
@@ -71,6 +75,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, req *ChatRequest) ite
 		}
 		defer resp.Body.Close()
 
+		finished := false
 		for data, err := range ai.SSEEvents(resp.Body) {
 			if err != nil {
 				yield(ChatStreamChunk{}, err)
@@ -84,9 +89,21 @@ func (c *Client) ChatCompletionStream(ctx context.Context, req *ChatRequest) ite
 				yield(ChatStreamChunk{}, e)
 				return
 			}
+			for _, choice := range chunk.Choices {
+				if choice.FinishReason != "" {
+					finished = true
+				}
+			}
+			if err := chunk.providerError(); err != nil {
+				yield(ChatStreamChunk{}, err)
+				return
+			}
 			if !yield(chunk, nil) {
 				return
 			}
+		}
+		if !finished {
+			yield(ChatStreamChunk{}, io.ErrUnexpectedEOF)
 		}
 	}
 }
@@ -157,6 +174,10 @@ func (c *Client) Stream(ctx context.Context, req *ai.Request) iter.Seq2[ai.Chunk
 				yield(ai.Chunk{}, e)
 				return
 			}
+			if err := chunk.providerError(); err != nil {
+				yield(ai.Chunk{}, err)
+				return
+			}
 			if chunk.Usage != nil {
 				usage = ai.Usage{
 					InputTokens:  chunk.Usage.PromptTokens,
@@ -217,4 +238,26 @@ func (c *Client) Stream(ctx context.Context, req *ai.Request) iter.Seq2[ai.Chunk
 		final := usage
 		yield(ai.Chunk{Done: true, Usage: &final}, nil)
 	}
+}
+
+func (c ChatStreamChunk) providerError() error {
+	if len(c.Error) > 0 && string(c.Error) != "null" {
+		return eventError(c.Error)
+	}
+	for _, choice := range c.Choices {
+		if choice.FinishReason == "error" {
+			return &ai.APIError{Message: "provider failed during completion"}
+		}
+	}
+	return nil
+}
+func eventError(raw json.RawMessage) error {
+	var details struct {
+		Message string
+		Code    json.RawMessage
+	}
+	_ = json.Unmarshal(raw, &details)
+	err := &ai.APIError{Message: details.Message, Code: rawToString(details.Code), Raw: raw}
+	_ = json.Unmarshal(details.Code, &err.Status)
+	return err
 }
